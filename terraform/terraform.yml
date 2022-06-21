@@ -1,0 +1,84 @@
+---
+- name: Setup Terraform on Debian, CentOS, Fedora systems
+  hosts: localhost
+  gather_facts: true
+  tasks:
+
+    - block:
+        - name: Update the APT Package Cache
+          become: true
+          apt:
+            update_cache: true
+            cache_valid_time: 3600
+        - name: Add Hashicorp signing key
+          become: true
+          apt_key:
+            url: "https://apt.releases.hashicorp.com/gpg"
+            state: present
+        - name: Add the Hashicorp Repo to Ubuntu
+          become: true
+          apt_repository:
+            repo: "deb [arch=amd64] https://apt.releases.hashicorp.com focal main"
+            state: present
+        - name: Install packages and terraform
+          become: true
+          package:
+            name:
+              - gnupg
+              - software-properties-common
+              - curl
+              - terraform
+      when:
+        - ansible_os_family == "Debian"
+  
+    - block:
+      - name: Update the YUM Package Cache
+        become: true
+        yum:
+          update_cache: true   
+      - name: Add Hashicorp Repo to CentOS
+        become: true
+        yum_repository:
+          name: Hashicorp
+          description: Hashicorp repository
+          baseurl: "https://rpm.releases.hashicorp.com/RHEL/$releasever/$basearch/stable"
+          enabled: true
+          gpgcheck: true
+          gpgkey: "https://rpm.releases.hashicorp.com/gpg"
+      - name: Install packages and terraform
+        become: true
+        yum:
+          name:
+            - yum-utils
+            - curl
+            - terraform
+          state: present
+      when:
+        - ansible_os_family == "RedHat"
+        - ansible_distribution == "CentOS"
+
+    - block:
+      - name: Update the YUM Package Cache
+        become: true
+        yum:
+          update_cache: true   
+      - name: Add Hashicorp Repo to Fedora
+        become: true
+        yum_repository:
+          name: Hashicorp
+          description: Hashicorp repository
+          baseurl: "https://rpm.releases.hashicorp.com/fedora/$releasever/$basearch/stable"
+          enabled: true
+          gpgcheck: true
+          gpgkey: "https://rpm.releases.hashicorp.com/gpg"
+      - name: Install packages and terraform
+        become: true
+        yum:
+          name:
+            - yum-utils
+            - curl
+            - terraform
+          state: present
+      when:
+        - ansible_distribution == "Alpine"
+    
